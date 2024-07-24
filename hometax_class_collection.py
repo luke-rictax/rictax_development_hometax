@@ -284,19 +284,23 @@ class HometaxJointCertificateLoginHelper(WebHelper):
 
             # 아이디 로그인 화면 iframe으로 전환
             self.switch_to_iframe_by_id("txppIframe")
+            time.sleep(5)
 
             # 공동금융인증서 클릭
             self.click_by_id("anchor22")
-            time.sleep(3)
+            time.sleep(5)
 
             # 공동인증서 로그인 iframe 전환
             WebDriverWait(self.driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "dscert")))
+            time.sleep(5)
 
             # 공동인증서 클릭
             self.click_by_id("row0dataTable")
+            time.sleep(5)
 
             # 공동인증서 비밀번호 입력
             self.send_keys_by_id("input_cert_pw", cert_pw)
+            time.sleep(5)
 
             # JavaScript를 사용하여 공동인증서 로그인 확인 클릭
             try:
@@ -304,21 +308,27 @@ class HometaxJointCertificateLoginHelper(WebHelper):
                 logging.info("Clicked confirm button for certificate")
             except WebDriverException as e:
                 logging.error(f"JavaScript 예외 발생: {e}")
+            time.sleep(5)
 
             # 팝업창에서 확인 버튼 클릭
             self.accept_popup()
+            time.sleep(5)
 
             # 기존화면 iframe 전환
             self.switch_to_default_content()
+            time.sleep(5)
 
             # 세무대리인 로그인화면 iframe 전환
             self.switch_to_iframe_by_id("txppIframe")
+            time.sleep(5)
 
             # 세무대리인 id 입력
             self.send_keys_by_id("input1", agent_id)
+            time.sleep(5)
 
             # 세무대리인 비밀번호 입력
             self.send_keys_by_id("input2", agent_pw)
+            time.sleep(5)
 
             # 세무대리인 로그인 버튼 클릭
             self.click_by_id("trigger41")
