@@ -9,6 +9,8 @@ app = FastAPI()
 
 API_KEY = "akfj8slf9s8f7gkfl98sjf7klsdfj9s8fj7kls"  # 무작위 API 키
 
+logging.basicConfig(level=logging.INFO)
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the FastAPI service!"}
@@ -24,8 +26,11 @@ async def trigger_task(x_api_key: Optional[str] = Header(None)):
 
     loop = asyncio.get_event_loop()
     try:
+        logging.info("Trigger task 시작")
         data_list = await loop.run_in_executor(None, run_task)
+        logging.info("Trigger task 완료, data_list 전송 시도")
         response = send_data_to_external_url(data_list)
+        logging.info("data_list 전송 완료")
         return response
     except Exception as e:
         logging.error(f"Error in trigger_task: {e}")
