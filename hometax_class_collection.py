@@ -12,6 +12,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 logging.basicConfig(level=logging.INFO)
 
+NPKI_PATH = "/home/ubuntu/NPKI"  # 공동인증서 경로
+
 class WebHelper:
     """웹 페이지와 상호 작용하기 위한 도우미 클래스입니다."""
     def __init__(self, driver):

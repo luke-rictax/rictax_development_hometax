@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from hometax_class_collection import HometaxAgentLoginHelper, WebHelper, DataExtractor, HometaxJointCertificateLoginHelper
+from hometax_class_collection import HometaxAgentLoginHelper, WebHelper, DataExtractor, HometaxJointCertificateLoginHelper,NPKI_PATH
 from google_class_collection import GoogleSheetsHelper
 from airtable_get_company_data import airtable_company  # Airtable 데이터 가져오기
 
@@ -17,6 +17,7 @@ def run_task():
     options.add_argument('--headless') # Headless 모드 옵션
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    options.add_argument(f'--cert-path={NPKI_PATH}')
 
     # ChromeDriver 경로 설정을 webdriver-manager로 대체
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
