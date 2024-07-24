@@ -1,9 +1,12 @@
 requests
-beautifulsoup4
+pandas
 selenium
 webdriver-manager
-pandas
+beautifulsoup4
 Flask
 logging
 apscheduler
 fastapi
+uvicorn
+gspread
+oauth2client
