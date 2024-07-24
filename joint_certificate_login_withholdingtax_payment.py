@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 def run_task():
     options = Options()
-    # options.add_argument('--headless') # Headless 모드 옵션
+    options.add_argument('--headless') # Headless 모드 옵션
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
