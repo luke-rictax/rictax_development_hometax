@@ -41,7 +41,9 @@ async def trigger_task(request: Request, x_api_key: Optional[str] = Header(None)
         logging.info("Trigger task 완료, data_chunks 전송 시도")
 
         for chunk in data_chunks:
-            response = send_data_to_external_url(chunk, external_url)
+            # json.dumps로 변환된 데이터를 문자열로 변환
+            json_string = json.dumps(chunk, ensure_ascii=False)
+            response = send_data_to_external_url(json_string, external_url)
             logging.info("data_chunk 전송 완료")
 
         return {"message": "All data chunks sent successfully"}
@@ -52,7 +54,8 @@ async def trigger_task(request: Request, x_api_key: Optional[str] = Header(None)
 
 def send_data_to_external_url(data_chunk, external_url):
     headers = {"Content-Type": "application/json"}
-    payload = json.loads(data_chunk)  # JSON 문자열을 파이썬 객체로 변환
+    payload = {"data": data_chunk}  # JSON 문자열을 파이썬 객체로 변환
+
 
     # 로깅 추가
     logging.info(f"Sending payload to external URL: {payload}")
