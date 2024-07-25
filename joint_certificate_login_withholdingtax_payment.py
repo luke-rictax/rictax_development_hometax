@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import NoSuchElementException  # 추가된 부분
 from webdriver_manager.chrome import ChromeDriverManager
 from hometax_class_collection import HometaxAgentLoginHelper, WebHelper, DataExtractor, HometaxJointCertificateLoginHelper
 from google_class_collection import GoogleSheetsHelper
@@ -26,13 +27,6 @@ def run_task():
     login_helper = HometaxJointCertificateLoginHelper(driver)
     data_extractor = DataExtractor(driver)
 
-    # Google Sheets Helper 초기화
-    google_sheets_helper = GoogleSheetsHelper(
-        client_id="8882977163-p8g91695270p07r8hedfqvd6k47u5nkq.apps.googleusercontent.com",
-        client_secret="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",
-        spreadsheet_url="https://docs.google.com/spreadsheets/d/12MVOSg306407CvGSKe_Q_tK2KCgK3y-KCiZv7-4RDFc/edit?gid=0#gid=0"
-    )
-
     try:
         # 로그인 수행
         logging.info("Logging in...")
@@ -43,7 +37,7 @@ def run_task():
         # 아이프레임 원복
         web_helper.switch_to_default_content()
 
-        # 세무대리납세관리 오버 수임사업자 기본사항 조회 클릭
+        # 세금신고 오버 일반신고 클릭
         web_helper.hover_and_click("hdGroup912", "menuAtag_4106010000")
 
         # 새로 뜬 창을 닫고 원래 창으로 전환
@@ -80,6 +74,16 @@ def run_task():
         # 모든 데이터를 저장할 리스트 초기화
         all_data = []
 
+        # 세목 선택
+        web_helper.select_by_visible_text("edtGrdRowNum", "100건")
+
+        # 조회건수 변경 후 확인
+        web_helper.click_by_id("trigger6_UTERNAAZ31")
+        time.sleep(3)
+
+        # 팝업 닫기
+        web_helper.accept_popup()
+
         def extract_data_from_current_page():
             rows = driver.find_elements(By.CSS_SELECTOR, '#ttirnam101DVOListDes_body_table tr')
             if not rows:
@@ -88,26 +92,32 @@ def run_task():
 
             for row in rows:
                 cells = row.find_elements(By.TAG_NAME, 'td')
-                if cells:
-                    cell_data = [
-                        cells[2].text.strip(),  # 과세연월
-                        cells[3].text.strip(),  # 신고서종류
-                        cells[4].text.strip(),  # 신고구분
-                        cells[5].text.strip(),  # 신고유형
-                        cells[6].text.strip(),  # 상호(성명)
-                        cells[7].text.strip(),  # 사업자(주민)등록번호
-                        cells[8].text.strip(),  # 접수방법
-                        cells[9].text.strip(),  # 접수일시
-                        cells[10].text.strip(),  # 접수번호(신고서보기)
-                        cells[11].text.strip(),  # 접수서류
-                        "",  # 접수증
-                        "",  # 납부서
-                        cells[30].text.strip(),  # 제출자ID
-                        cells[31].text.strip(),  # 부속서류제출여부
-                        cells[38].text.strip()  # 납부여부
-                    ]
-                    if any(cell_data):
+                if cells and len(cells) > 38:
+                    cell_data = {
+                        "과세연월": cells[2].text.strip(),
+                        "신고서종류": cells[3].text.strip(),
+                        "신고구분": cells[4].text.strip(),
+                        "신고유형": cells[5].text.strip(),
+                        "상호(성명)": cells[6].text.strip(),
+                        "사업자(주민)등록번호": cells[7].text.strip(),
+                        "접수방법": cells[8].text.strip(),
+                        "접수일시": cells[9].text.strip(),
+                        "접수번호(신고서보기)": cells[10].text.strip(),
+                        "접수서류": cells[11].text.strip(),
+                        "접수증": "",  # 빈 값으로 설정
+                        "납부서": "",  # 빈 값으로 설정
+                        "제출자ID": cells[30].text.strip(),
+                        "부속서류제출여부": cells[31].text.strip(),
+                        "지방소득세": "",  # 빈 값으로 설정
+                        "납부여부": cells[38].text.strip()
+                    }
+                    # Check if all important fields are empty
+                    if any(value != "" for value in cell_data.values()):
                         all_data.append(cell_data)
+                    else:
+                        logging.info("Skipping row with all empty fields.")
+                else:
+                    logging.warning("Row does not contain enough cells. Skipping row.")
 
             logging.info(f"Extracted {len(rows)} rows from the current page.")
 
@@ -115,15 +125,18 @@ def run_task():
             page_num = 1
             while True:
                 for page in range(page_num, page_num + 10):
-                    if page != page_num:  # 첫 페이지는 이미 '다음 페이지' 버튼 클릭으로 이동됨
-                        try:
-                            page_button = driver.find_element(By.CSS_SELECTOR, f'#pglNavi887_page_{page}')
-                            page_button.click()
-                            time.sleep(3)
-                            web_helper.accept_popup()
-                        except Exception as e:
-                            logging.error(f"Error navigating to page {page}: {e}")
-                            return
+                    try:
+                        page_button = driver.find_element(By.CSS_SELECTOR, f'#pglNavi887_page_{page}')
+                        page_button.click()
+                        time.sleep(3)
+                        web_helper.accept_popup()
+                    except NoSuchElementException:
+                        logging.info(f"No more pages to navigate. Ending at page {page}.")
+                        return
+                    except Exception as e:
+                        logging.error(f"Error navigating to page {page}: {e}")
+                        return
+
                     extract_data_from_current_page()
                     time.sleep(1)  # 페이지에서 1초 동안 대기
 
@@ -141,12 +154,31 @@ def run_task():
 
         driver.quit()
 
-        # 데이터를 JSON 문자열로 변환
-        json_data = json.dumps({'data': all_data}, ensure_ascii=False, indent=4)
+        # 데이터를 20건씩 나누어 반환, 메타데이터 포함
+        total_data_count = len(all_data)
+        data_chunks = [all_data[i:i + 20] for i in range(0, total_data_count, 20)]
+        total_chunks = len(data_chunks)
+        json_chunks = [
+            json.dumps({
+                "data": [[k, v] for item in chunk for k, v in item.items()],
+                "metadata": {
+                    "total_data_count": str(total_data_count),
+                    "total_chunks": str(total_chunks),
+                    "current_chunk_index": str(i + 1)
+                }
+            }, ensure_ascii=False, indent=4)
+            for i, chunk in enumerate(data_chunks)
+        ]
 
-        return json_data
+        return json_chunks
 
     except Exception as e:
         logging.error(f"Error in run_task: {e}")
         driver.quit()
         raise
+
+# 실행 예시
+if __name__ == "__main__":
+    result = run_task()
+    for chunk in result:
+        print(chunk)

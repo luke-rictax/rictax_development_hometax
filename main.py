@@ -4,6 +4,7 @@ import requests
 from joint_certificate_login_withholdingtax_payment import run_task
 import asyncio
 import logging
+import json  # 추가된 부분
 
 app = FastAPI()
 
@@ -36,19 +37,22 @@ async def trigger_task(request: Request, x_api_key: Optional[str] = Header(None)
     loop = asyncio.get_event_loop()
     try:
         logging.info("Trigger task 시작")
-        data_list = await loop.run_in_executor(None, run_task)
-        logging.info("Trigger task 완료, data_list 전송 시도")
-        response = send_data_to_external_url(data_list, external_url)
-        logging.info("data_list 전송 완료")
-        return response
+        data_chunks = await loop.run_in_executor(None, run_task)
+        logging.info("Trigger task 완료, data_chunks 전송 시도")
+
+        for chunk in data_chunks:
+            response = send_data_to_external_url(chunk, external_url)
+            logging.info("data_chunk 전송 완료")
+
+        return {"message": "All data chunks sent successfully"}
     except Exception as e:
         logging.error(f"Error in trigger_task: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def send_data_to_external_url(data_list, external_url):
+def send_data_to_external_url(data_chunk, external_url):
     headers = {"Content-Type": "application/json"}
-    payload = {"data": data_list}
+    payload = json.loads(data_chunk)  # JSON 문자열을 파이썬 객체로 변환
 
     # 로깅 추가
     logging.info(f"Sending payload to external URL: {payload}")

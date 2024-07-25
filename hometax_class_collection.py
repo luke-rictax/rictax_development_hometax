@@ -137,15 +137,15 @@ class HometaxAgentLoginHelper(WebHelper):
         try:
             # 홈택스 페이지 접속
             self.driver.get("https://www.hometax.go.kr/")
-            time.sleep(5)  # 페이지 로드를 위해 3초 대기
+            time.sleep(3)  # 페이지 로드를 위해 3초 대기
 
             # 신고기간 홈택스 접속
             self.click_by_id("RD3A")
-            time.sleep(5)
+            time.sleep(3)
 
             # 로그인 페이지 ID를 사용하여 요소 찾기 및 클릭
             self.click_by_id("textbox915")
-            time.sleep(5)  # 클릭 후 페이지 로드를 위해 3초 대기
+            time.sleep(3)  # 클릭 후 페이지 로드를 위해 3초 대기
 
             # 아이디 로그인 화면 iframe으로 전환
             self.switch_to_iframe_by_id("txppIframe")
@@ -273,35 +273,35 @@ class HometaxJointCertificateLoginHelper(WebHelper):
         try:
             # 홈택스 페이지 접속
             self.driver.get("https://www.hometax.go.kr/")
-            time.sleep(5)  # 페이지 로드를 위해 3초 대기
+            time.sleep(3)  # 페이지 로드를 위해 3초 대기
 
             # 신고기간 홈택스 접속
             self.click_by_id("RD3A")
-            time.sleep(5)
+            time.sleep(3)
 
             # 로그인 페이지 ID를 사용하여 요소 찾기 및 클릭
             self.click_by_id("textbox915")
-            time.sleep(5)  # 클릭 후 페이지 로드를 위해 3초 대기
+            time.sleep(3)  # 클릭 후 페이지 로드를 위해 3초 대기
 
             # 아이디 로그인 화면 iframe으로 전환
             self.switch_to_iframe_by_id("txppIframe")
-            time.sleep(5)
+            time.sleep(3)
 
             # 공동금융인증서 클릭
             self.click_by_id("anchor22")
-            time.sleep(5)
+            time.sleep(3)
 
             # 공동인증서 로그인 iframe 전환
             WebDriverWait(self.driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "dscert")))
-            time.sleep(5)
+            time.sleep(3)
 
             # 공동인증서 클릭
             self.click_by_id("row0dataTable")
-            time.sleep(5)
+            time.sleep(3)
 
             # 공동인증서 비밀번호 입력
             self.send_keys_by_id("input_cert_pw", cert_pw)
-            time.sleep(5)
+            time.sleep(3)
 
             # JavaScript를 사용하여 공동인증서 로그인 확인 클릭
             try:
@@ -309,27 +309,25 @@ class HometaxJointCertificateLoginHelper(WebHelper):
                 logging.info("Clicked confirm button for certificate")
             except WebDriverException as e:
                 logging.error(f"JavaScript 예외 발생: {e}")
-            time.sleep(5)
+            time.sleep(3)
 
             # 팝업창에서 확인 버튼 클릭
             self.accept_popup()
-            time.sleep(5)
+            time.sleep(3)
 
             # 기존화면 iframe 전환
             self.switch_to_default_content()
-            time.sleep(5)
+            time.sleep(3)
 
             # 세무대리인 로그인화면 iframe 전환
             self.switch_to_iframe_by_id("txppIframe")
-            time.sleep(5)
+            time.sleep(3)
 
             # 세무대리인 id 입력
             self.send_keys_by_id("input1", agent_id)
-            time.sleep(5)
 
             # 세무대리인 비밀번호 입력
             self.send_keys_by_id("input2", agent_pw)
-            time.sleep(5)
 
             # 세무대리인 로그인 버튼 클릭
             self.click_by_id("trigger41")
