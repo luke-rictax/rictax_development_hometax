@@ -160,11 +160,11 @@ def run_task():
         total_chunks = len(data_chunks)
         json_chunks = [
             json.dumps({
-                "data": [[k, v] for item in chunk for k, v in item.items()],
+                "data": chunk,
                 "metadata": {
-                    "total_data_count": str(total_data_count),
-                    "total_chunks": str(total_chunks),
-                    "current_chunk_index": str(i + 1)
+                    "total_data_count": total_data_count,
+                    "total_chunks": total_chunks,
+                    "current_chunk_index": i + 1
                 }
             }, ensure_ascii=False, indent=4)
             for i, chunk in enumerate(data_chunks)
