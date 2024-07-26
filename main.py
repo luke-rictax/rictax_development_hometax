@@ -4,11 +4,11 @@ import requests
 from joint_certificate_login_withholdingtax_payment import run_task
 import asyncio
 import logging
-import json  # 추가된 부분
+import json
 
 app = FastAPI()
 
-API_KEY = "akfj8slf9s8f7gkfl98sjf7klsdfj9s8fj7kls"  # 무작위 API 키
+API_KEY = "akfj8slf9s8f7gkfl98sjf7klsdfj9s8fj7kls"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -41,7 +41,6 @@ async def trigger_task(request: Request, x_api_key: Optional[str] = Header(None)
         logging.info("Trigger task 완료, data_chunks 전송 시도")
 
         for chunk in data_chunks:
-            # json.dumps로 변환된 데이터를 문자열로 변환
             json_string = json.dumps(chunk, ensure_ascii=False)
             response = send_data_to_external_url(json_string, external_url)
             logging.info("data_chunk 전송 완료")
@@ -54,18 +53,18 @@ async def trigger_task(request: Request, x_api_key: Optional[str] = Header(None)
 
 def send_data_to_external_url(data_chunk, external_url):
     headers = {"Content-Type": "application/json"}
-    payload = {"data": data_chunk}  # JSON 문자열을 파이썬 객체로 변환
+    payload = {"data": data_chunk}
 
-
-    # 로깅 추가
     logging.info(f"Sending payload to external URL: {payload}")
 
-    response = requests.post(external_url, json=payload, headers=headers)
-
-    # 응답 로깅
-    logging.info(f"Response from external URL: {response.text}")
-
-    return response.json()
+    try:
+        response = requests.post(external_url, json=payload, headers=headers)
+        response.raise_for_status()  # HTTP 에러가 발생하면 예외를 일으킴
+        logging.info(f"Response from external URL: {response.text}")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Request failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Request to external URL failed: {e}")
 
 
 if __name__ == "__main__":

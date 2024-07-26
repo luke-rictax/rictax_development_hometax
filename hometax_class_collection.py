@@ -275,9 +275,12 @@ class HometaxJointCertificateLoginHelper(WebHelper):
             self.driver.get("https://www.hometax.go.kr/")
             time.sleep(3)  # 페이지 로드를 위해 3초 대기
 
-            # 신고기간 홈택스 접속
-            self.click_by_id("RD3A")
-            time.sleep(3)
+            # 신고기간 동안의 홈택스 접속 클릭 (ID가 없으면 넘어감)
+            try:
+                self.click_by_id("RD3A")
+                time.sleep(3)
+            except NoSuchElementException:
+                logging.info("RD3A ID not found, skipping 신고기간 홈택스 접속 step")
 
             # 로그인 페이지 ID를 사용하여 요소 찾기 및 클릭
             self.click_by_id("textbox915")
@@ -297,11 +300,9 @@ class HometaxJointCertificateLoginHelper(WebHelper):
 
             # 공동인증서 클릭
             self.click_by_id("row0dataTable")
-            time.sleep(3)
 
             # 공동인증서 비밀번호 입력
             self.send_keys_by_id("input_cert_pw", cert_pw)
-            time.sleep(3)
 
             # JavaScript를 사용하여 공동인증서 로그인 확인 클릭
             try:
