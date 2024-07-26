@@ -13,9 +13,9 @@ from airtable_get_company_data import airtable_company  # Airtable 데이터 가
 
 logging.basicConfig(level=logging.INFO)
 
-def run_task():
+def run_task(start_date, end_date):
     options = Options()
-    options.add_argument('--headless')  # Headless 모드 옵션
+    # options.add_argument('--headless')  # Headless 모드 옵션
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
@@ -58,6 +58,12 @@ def run_task():
         # 신고내역 조회(접수증납부서) 클릭
         web_helper.click_by_id("tabControl1_UTERNAAZ11_tab_tabs2_UTERNAAZ11")
         time.sleep(3)
+
+        # 신고일자 시작일
+        web_helper.send_keys_by_id("rtnDtSrt_UTERNAAZ31_input", start_date)
+
+        # 신고일자 종료일
+        web_helper.send_keys_by_id("rtnDtEnd_UTERNAAZ31_input", end_date)
 
         # 조회하기 클릭
         try:

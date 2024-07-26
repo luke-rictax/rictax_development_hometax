@@ -5,6 +5,7 @@ from joint_certificate_login_withholdingtax_payment import run_task
 import asyncio
 import logging
 import json
+from datetime import datetime, timedelta
 
 app = FastAPI()
 
@@ -30,14 +31,20 @@ async def trigger_task(request: Request, x_api_key: Optional[str] = Header(None)
 
     data = await request.json()
     external_url = data.get("url")
+    start_date = data.get("start_date")
 
     if not external_url:
-        raise HTTPException(status_code=400, detail="URL is required")
+        raise HTTPException(status_code=400, detail="URL and start_date are required")
+
+    # 종료일은 시작일로부터 30일 후로 설정
+    start_date_obj = datetime.strptime(start_date, "%Y%m%d")
+    end_date_obj = start_date_obj + timedelta(days=30)
+    end_date = end_date_obj.strftime("%Y%m%d")
 
     loop = asyncio.get_event_loop()
     try:
         logging.info("Trigger task 시작")
-        data_chunks = await loop.run_in_executor(None, run_task)
+        data_chunks = await loop.run_in_executor(None, run_task, start_date, end_date)
         logging.info("Trigger task 완료, data_chunks 전송 시도")
 
         for chunk in data_chunks:
@@ -65,6 +72,28 @@ def send_data_to_external_url(data_chunk, external_url):
     except requests.exceptions.RequestException as e:
         logging.error(f"Request failed: {e}")
         raise HTTPException(status_code=500, detail=f"Request to external URL failed: {e}")
+
+@app.post("/run-task-test")
+async def run_task_endpoint(start_date: str, end_date: Optional[str] = None):
+    try:
+        logging.info("Running task")
+
+        # 종료일이 제공되지 않은 경우 시작일로부터 30일 후로 설정
+        if not end_date:
+            start_date_dt = datetime.strptime(start_date, "%Y%m%d")
+            end_date_dt = start_date_dt + timedelta(days=30)
+            end_date = end_date_dt.strftime("%Y%m%d")
+
+        data_chunks = run_task(start_date, end_date)
+        logging.info("Task completed")
+
+        # 각 chunk를 JSON 문자열로 변환하여 반환
+        results = [json.dumps(chunk, ensure_ascii=False) for chunk in data_chunks]
+
+        return {"message": "Task completed successfully", "results": results}
+    except Exception as e:
+        logging.error(f"Error running task: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
